@@ -7,6 +7,7 @@ Using Composer (recommended)
 
     composer create-project usermanagementlaravel
     cd usermanagementlaravel
+    git checkout master
     cp .env.example .env (and enter database details in .env file)
     php artisan key:generate
     chmod -R 777 storage (if necessary)
