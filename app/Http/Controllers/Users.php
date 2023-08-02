@@ -11,6 +11,7 @@ use Session;
 use App\PermissionList; 
 use App\Imports\UserImport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Contracts\Validation\Factory as ValidatorFactory;
 
 class Users extends Controller
 {
@@ -205,7 +206,6 @@ class Users extends Controller
                 );
 
                 $picture = $req->file('picture');
-                dd($picture);
                 if ($picture != "") {
                     $destinationPath = public_path('/avtars');
                     $new_name = date('Ymdhis').'_'.rand().'_'.$picture->getClientOriginalExtension(); 
@@ -300,9 +300,8 @@ class Users extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    public function bulkUploadUsers(Request $request)
+    public function bulkUploadUsers(Request $request, ValidatorFactory $validator)
     {
-        // Validate the uploaded file
         $request->validate([
             'user_list' => 'required',
         ]);
@@ -310,11 +309,25 @@ class Users extends Controller
         if ($request->hasFile('user_list')) {
             $file = $request->file('user_list');
             $filePath = $file->getPathname();
-                // Import the users from the CSV file
-                $import = new UserImport();
+        
+            try {
+                $import = new UserImport($validator);
                 Excel::import($import, $filePath, null, \Maatwebsite\Excel\Excel::CSV);
-               Session::flash('success', 'Upload Success.');
-            
+                $validationErrors = $import->getValidationErrors();
+                if (!empty($validationErrors)) {
+                    $errorMessages = [];
+
+                    foreach ($validationErrors as $error) {
+                        $errorMessages[] = "Error in row " . $error['row_num'] . ": " . implode(", ", $error['errors']);
+                    }
+
+                    Session::flash('error', implode("\n", $errorMessages));
+                } else {
+                    Session::flash('success', 'Upload Success.');
+                }
+            } catch (\Exception $e) {
+                    Session::flash('success', 'Facing some error. Please try after some time.');
+            }           
         } else {
             Session::flash('success', 'Please upload a CSV file.');
         }
@@ -365,6 +378,25 @@ class Users extends Controller
                             break;
                     }
             }
+
+            $mails = [];
+
+            foreach ($oMessage as $key => $value) {
+                $message = [
+                    'getDate' => $message->getDate(),
+                    'getSubject' => $message->getSubject(),
+                    'mail' => $message->getFrom()[0]->mail,
+                    'htmlBody' => $message->getHTMLBody(true),
+                    'attachment' => $message->getAttachments()
+                ];
+
+                array_push($mails, $message);
+            }
+            dd($mails);
+
+             $attachmentPath = 'path/to/your/directory/' . $attachment->getName();
+                        file_put_contents($attachmentPath, $attachment->g
+
             return view('admin.email')->with(['title'=>'User Inbox', 'oMessage'=>$oMessage]);
              } catch(\Exception $err) {
             Session::flash('success', 'Connection Refused with your gmail!');

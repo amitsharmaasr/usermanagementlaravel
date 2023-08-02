@@ -1,5 +1,9 @@
 @extends('layouts.app')
-
+<style>
+    .bordered-cell {
+        border: 1px solid black;
+    }
+</style>
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
@@ -14,16 +18,35 @@
                         <th>From</th>
                         <th>Subject</th>
                         <th>Body</th>
-                   
+                        <th>Attachments</th>
                     </tr>
                     </thead>
                      <tbody>
                      @foreach($oMessage as $message)
                             <tr>                         
-                            <td>{{date("Y-m-d H:i:s", strtotime($message->getDate()))}}</td>
-                            <td>{{$message->getFrom()[0]->mail}}</td>
-                            <td>{{$message->getSubject()}}</td>
-                            <td>{{$message->getTextBody(true)}}</td>
+                            <td class="bordered-cell">{{date("Y-m-d H:i:s", strtotime($message->getDate()))}}</td>
+                            <td class="bordered-cell">{{$message->getFrom()[0]->mail}}</td>
+                            <td class="bordered-cell">{{$message->getSubject()}}</td>
+                            <td class="bordered-cell">
+                                {!! $message->getHTMLBody(true) !!}
+                                  @foreach ($message->getAttachments() as $attachment)
+                                @if ($attachment->getDisposition() === 'inline')
+                                    <br>
+                                    <img src="data:{{ $attachment->getType() }};base64,{{ base64_encode($attachment->getContent()) }}" alt="{{ $attachment->getName() }}">
+                                @endif
+                            @endforeach
+                            </td>
+                            <td class="bordered-cell">
+                                    @if ($message->getAttachments()->count() > 0)
+                                        <ul>
+                                            @foreach ($message->getAttachments() as $attachment)
+                                                <li><a href="{{ $attachment->getPath() }}" target="_blank">{{ $attachment->getName() }}</a></li>
+                                            @endforeach
+                                        </ul>
+                                    @else
+                                        No Attachments
+                                    @endif
+                            </td>
                             </tr>
                      @endforeach
                     </tbody>

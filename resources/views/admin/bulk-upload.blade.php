@@ -5,6 +5,12 @@
 .invalid-feedback {
     color: red;
 }
+   #errorTextarea {
+        width: 100%;
+        height: 200px; /* Set an initial height (you can change it to your desired height) */
+        overflow: auto; /* Add scrollbars when content exceeds the textarea's dimensions */
+        resize: vertical; /* Allow vertical resizing (optional) */
+    }
 </style>
 <div class="container">
     <div class="row justify-content-center">
@@ -12,6 +18,10 @@
 
 
             <h3>{{ __('Bulk Upload Users') }}</h3>
+
+            <div>
+                <textarea id="errorTextarea" rows="10" readonly hidden></textarea>
+            </div>
 
             <div>
                 <form method="POST" action="{{ route('uploadUser') }}" enctype="multipart/form-data">
@@ -61,6 +71,13 @@
 <script>
 @if(Session::has('success'))
 M.toast({html: '{{Session::get('success')}}', classes: 'rounded'});
+@endif
+
+@if(Session::has('error'))
+    let errorMessage = {!! json_encode(Session::get('error')) !!};
+    let errorTextarea = document.getElementById('errorTextarea');
+    errorTextarea.value = errorMessage;
+    errorTextarea.removeAttribute('hidden'); 
 @endif
 </script>
 @endsection
