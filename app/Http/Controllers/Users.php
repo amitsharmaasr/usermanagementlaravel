@@ -381,25 +381,35 @@ class Users extends Controller
 
             $mails = [];
 
-            foreach ($oMessage as $key => $value) {
+            foreach ($oMessage as $message) {
+
+                $attachments = [];
+
+                if ($message->getAttachments()->count() > 0) {
+                    foreach ($message->getAttachments() as $attachment) {
+                            $attachmentPath = public_path('/mail_attachments/').$attachment->getName();
+                            file_put_contents($attachmentPath, $attachment->getContent());
+                            $attachments[] = ['name' => $attachment->getName(), 'path' => $attachmentPath];
+
+                    }
+                }
+                
+
+
                 $message = [
                     'getDate' => $message->getDate(),
                     'getSubject' => $message->getSubject(),
                     'mail' => $message->getFrom()[0]->mail,
                     'htmlBody' => $message->getHTMLBody(true),
-                    'attachment' => $message->getAttachments()
+                    'attachment' => $message->getAttachments(),
+                    'localAttachments' => $attachments
                 ];
-
                 array_push($mails, $message);
             }
-            dd($mails);
-
-             $attachmentPath = 'path/to/your/directory/' . $attachment->getName();
-                        file_put_contents($attachmentPath, $attachment->g
-
-            return view('admin.email')->with(['title'=>'User Inbox', 'oMessage'=>$oMessage]);
-             } catch(\Exception $err) {
-            Session::flash('success', 'Connection Refused with your gmail!');
+            return view('admin.email')->with(['title'=>'User Inbox', 'mails'=>$mails, 'oMessage'=>$oMessage]);
+            } catch(\Exception $err) {
+                dd($err);
+                            Session::flash('success', 'Connection Refused with your gmail!');
             return redirect()->back();
         }
             }

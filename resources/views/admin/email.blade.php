@@ -3,6 +3,19 @@
     .bordered-cell {
         border: 1px solid black;
     }
+    .table-wrapper {
+      max-height: 100%; /* Set the desired height for the table */
+      overflow-y: auto; /* Add vertical scroll if the content exceeds the max-height */
+    }
+
+    table {
+      width: 1000px; /* Set the desired width for the table */
+    }
+
+    tbody {
+      overflow-y: auto; /* Add vertical scroll if tbody content exceeds the max-height */
+    }
+
 </style>
 @section('content')
 <div class="container">
@@ -10,47 +23,48 @@
         <div class="col-md-12">
             <div>
                 <h2>Inbox</h2>
-                <div>
+                <div class="table-wrapper">
                     <table class="table datatable" id="example">
                     <thead>
                     <tr>
-                        <th>Send Time</th>
-                        <th>From</th>
-                        <th>Subject</th>
-                        <th>Body</th>
-                        <th>Attachments</th>
+                        <th class="bordered-cell">Send Time</th>
+                        <th class="bordered-cell">From</th>
+                        <th class="bordered-cell">Subject</th>
+                        <th class="bordered-cell">Body</th>
+                        <th class="bordered-cell">Attachments</th>
+                        <th class="bordered-cell">Reply</th>
                     </tr>
                     </thead>
                      <tbody>
-                     @foreach($oMessage as $message)
+                     @foreach($mails as $mail)
                             <tr>                         
-                            <td class="bordered-cell">{{date("Y-m-d H:i:s", strtotime($message->getDate()))}}</td>
-                            <td class="bordered-cell">{{$message->getFrom()[0]->mail}}</td>
-                            <td class="bordered-cell">{{$message->getSubject()}}</td>
+                            <td class="bordered-cell">{{date("Y-m-d H:i:s", strtotime($mail['getDate']))}}</td>
+                            <td class="bordered-cell">{{$mail['mail']}}</td>
+                            <td class="bordered-cell">{{$mail['getSubject']}}</td>
                             <td class="bordered-cell">
-                                {!! $message->getHTMLBody(true) !!}
-                                  @foreach ($message->getAttachments() as $attachment)
+                                {!! $mail['htmlBody']!!}
+                                  @foreach ($mail['attachment'] as $attachment)
                                 @if ($attachment->getDisposition() === 'inline')
                                     <br>
-                                    <img src="data:{{ $attachment->getType() }};base64,{{ base64_encode($attachment->getContent()) }}" alt="{{ $attachment->getName() }}">
+                                    <img src="data:{{ c }};base64,{{ base64_encode($attachment->getContent()) }}" alt="{{ $attachment->getName() }}">
                                 @endif
                             @endforeach
                             </td>
                             <td class="bordered-cell">
-                                    @if ($message->getAttachments()->count() > 0)
+                                    @if (count($mail['localAttachments']) > 0)
                                         <ul>
-                                            @foreach ($message->getAttachments() as $attachment)
-                                                <li><a href="{{ $attachment->getPath() }}" target="_blank">{{ $attachment->getName() }}</a></li>
+                                            @foreach ($mail['localAttachments'] as $attachment)
+                                                <li><a href="{{url('public/mail_attachments/'.$attachment['name'])}}" target="_blank">{{ $attachment['name'] }}</a></li>
                                             @endforeach
                                         </ul>
                                     @else
                                         No Attachments
                                     @endif
                             </td>
+                            <td class="bordered-cell"></td>
                             </tr>
                      @endforeach
                     </tbody>
-                   
                     </table>
                 </div>
             </div>

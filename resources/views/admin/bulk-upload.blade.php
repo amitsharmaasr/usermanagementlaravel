@@ -11,6 +11,13 @@
         overflow: auto; /* Add scrollbars when content exceeds the textarea's dimensions */
         resize: vertical; /* Allow vertical resizing (optional) */
     }
+      .footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 250px;
+  }
 </style>
 <div class="container">
     <div class="row justify-content-center">
